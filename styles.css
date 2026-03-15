@@ -66,9 +66,10 @@ button.ghost { background: #141e3f; border-color: #2b3e79; }
   left: 50%;
   bottom: max(10px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  width: min(460px, calc(100vw - 1rem));
+  width: min(360px, calc(100vw - 1rem));
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 56px);
   gap: .45rem;
   margin: 0;
   padding: .55rem;
@@ -81,12 +82,25 @@ button.ghost { background: #141e3f; border-color: #2b3e79; }
 .touch button {
   border-radius: 999px;
   min-height: 52px;
-  font-size: 1.15rem;
+  font-size: 1rem;
   background: rgba(17, 24, 51, 0.9);
   border: 1px solid #3a4d8e;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 .touch button:active { transform: scale(0.96); }
+
+.touch .t-up { grid-column: 2; grid-row: 1; }
+.touch .t-left { grid-column: 1; grid-row: 2; }
+.touch .t-center {
+  grid-column: 2;
+  grid-row: 2;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px dashed rgba(110, 130, 200, 0.2);
+  pointer-events: none;
+}
+.touch .t-right { grid-column: 3; grid-row: 2; }
+.touch .t-down { grid-column: 2; grid-row: 3; }
 
 .overlay {
   position: fixed;
