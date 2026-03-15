@@ -26,6 +26,51 @@ let gameOver;
 let tickMs;
 let loopId;
 
+const audio = {
+  enabled: true,
+  ctx: null,
+  ensure() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(freq = 440, duration = 0.08, type = 'square', volume = 0.12) {
+    if (!this.enabled) return;
+    this.ensure();
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const hp = this.ctx.createBiquadFilter();
+
+    hp.type = 'highpass';
+    hp.frequency.setValueAtTime(120, t);
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+    gain.gain.setValueAtTime(volume, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+
+    osc.connect(hp);
+    hp.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + duration);
+  },
+  move() {
+    this.tone(240 + Math.random() * 120, 0.035, 'square', 0.05);
+  },
+  eat() {
+    [500, 700, 900, 1200].forEach((f, i) =>
+      setTimeout(() => this.tone(f, 0.07, 'triangle', 0.14), i * 30)
+    );
+  },
+  pause() {
+    [520, 380].forEach((f, i) => setTimeout(() => this.tone(f, 0.09, 'square', 0.12), i * 70));
+  },
+  gameOver() {
+    [260, 180, 120, 80].forEach((f, i) => setTimeout(() => this.tone(f, 0.16, 'sawtooth', 0.16), i * 85));
+  }
+};
+
 function rand(max) {
   return Math.floor(Math.random() * max);
 }
@@ -109,6 +154,7 @@ function step() {
   if (paused || gameOver) return;
 
   dir = nextDir;
+  audio.move();
   const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
 
   if (head.x < 0 || head.y < 0 || head.x >= GRID || head.y >= GRID) {
@@ -125,6 +171,7 @@ function step() {
 
   if (head.x === food.x && head.y === food.y) {
     score += 10;
+    audio.eat();
     if (score > best) {
       best = score;
       setBest(best);
@@ -147,6 +194,7 @@ function startLoop() {
 function endGame(title, text) {
   gameOver = true;
   clearInterval(loopId);
+  audio.gameOver();
   showOverlay(title, `${text}. Puntaje: ${score}`);
   overlayBtn.textContent = 'Jugar otra vez';
 }
@@ -165,6 +213,7 @@ function hideOverlay() {
 function togglePause() {
   if (gameOver) return;
   paused = !paused;
+  audio.pause();
   if (paused) {
     clearInterval(loopId);
     showOverlay('⏸ Pausa', 'Pulsa continuar para seguir');
@@ -183,6 +232,7 @@ function setDirection(x, y) {
 }
 
 document.addEventListener('keydown', (e) => {
+  audio.ensure();
   const key = e.key.toLowerCase();
 
   if (key === 'p') {
@@ -215,14 +265,18 @@ document.addEventListener('keydown', (e) => {
 restartBtn.addEventListener('click', reset);
 pauseBtn.addEventListener('click', togglePause);
 overlayBtn.addEventListener('click', () => {
+  audio.ensure();
   if (gameOver) reset();
   else togglePause();
 });
+
+window.addEventListener('pointerdown', () => audio.ensure(), { once: true });
 
 document.querySelectorAll('.touch button').forEach((btn) => {
   const action = btn.dataset.action;
   const run = (ev) => {
     ev.preventDefault();
+    audio.ensure();
     if (action === 'up') setDirection(0, -1);
     if (action === 'down') setDirection(0, 1);
     if (action === 'left') setDirection(-1, 0);
