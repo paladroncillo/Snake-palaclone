@@ -29,11 +29,12 @@ let loopId;
 const audio = {
   enabled: true,
   ctx: null,
+  beatStep: 0,
   ensure() {
     if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (this.ctx.state === 'suspended') this.ctx.resume();
   },
-  tone(freq = 440, duration = 0.08, type = 'square', volume = 0.12) {
+  tone(freq = 440, duration = 0.08, type = 'square', volume = 0.16, attack = 0.002) {
     if (!this.enabled) return;
     this.ensure();
     const t = this.ctx.currentTime;
@@ -42,32 +43,40 @@ const audio = {
     const hp = this.ctx.createBiquadFilter();
 
     hp.type = 'highpass';
-    hp.frequency.setValueAtTime(120, t);
+    hp.frequency.setValueAtTime(150, t);
 
     osc.type = type;
     osc.frequency.setValueAtTime(freq, t);
-    gain.gain.setValueAtTime(volume, t);
+
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(volume, t + attack);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
 
     osc.connect(hp);
     hp.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start(t);
-    osc.stop(t + duration);
+    osc.stop(t + duration + 0.01);
+  },
+  chord(freq, spread = [1, 2], duration = 0.08, volume = 0.12) {
+    spread.forEach((m, i) => setTimeout(() => this.tone(freq * m, duration, 'square', volume / (i + 1)), i * 4));
   },
   move() {
-    this.tone(240 + Math.random() * 120, 0.035, 'square', 0.05);
+    const riff = [262, 294, 330, 392, 330, 294];
+    const f = riff[this.beatStep % riff.length];
+    this.beatStep++;
+    this.chord(f, [1, 2], 0.04, 0.11);
   },
   eat() {
-    [500, 700, 900, 1200].forEach((f, i) =>
-      setTimeout(() => this.tone(f, 0.07, 'triangle', 0.14), i * 30)
+    [523, 659, 784, 1046, 1318].forEach((f, i) =>
+      setTimeout(() => this.chord(f, [1, 1.5], 0.09, 0.18), i * 28)
     );
   },
   pause() {
-    [520, 380].forEach((f, i) => setTimeout(() => this.tone(f, 0.09, 'square', 0.12), i * 70));
+    [660, 440, 660].forEach((f, i) => setTimeout(() => this.tone(f, 0.1, 'square', 0.15), i * 60));
   },
   gameOver() {
-    [260, 180, 120, 80].forEach((f, i) => setTimeout(() => this.tone(f, 0.16, 'sawtooth', 0.16), i * 85));
+    [330, 262, 196, 147, 110].forEach((f, i) => setTimeout(() => this.tone(f, 0.18, 'sawtooth', 0.2), i * 75));
   }
 };
 
