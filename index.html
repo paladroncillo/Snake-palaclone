@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Snake Clásico</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="board-wrap">
+        <canvas id="game" width="360" height="360" aria-label="Tablero Snake"></canvas>
+      </section>
+
+      <aside class="panel">
+        <h1>Snake</h1>
+        <p class="hint">Controles: Flechas / WASD · P pausa · R reiniciar</p>
+
+        <div class="stats">
+          <div><span>Puntaje</span><strong id="score">0</strong></div>
+          <div><span>Récord</span><strong id="best">0</strong></div>
+          <div><span>Velocidad</span><strong id="speed">1x</strong></div>
+        </div>
+
+        <div class="actions">
+          <button id="restart">Reiniciar</button>
+          <button id="pause" class="ghost">Pausar</button>
+        </div>
+      </aside>
+    </main>
+
+    <section class="touch" aria-label="Controles táctiles">
+      <button data-action="up">▲</button>
+      <button data-action="left">◀</button>
+      <button data-action="down">▼</button>
+      <button data-action="right">▶</button>
+      <button data-action="pause">⏯</button>
+    </section>
+
+    <div id="overlay" class="overlay hidden">
+      <div class="overlay-card">
+        <h2 id="overlayTitle">Pausa</h2>
+        <p id="overlayText">Pulsa continuar para seguir</p>
+        <button id="overlayBtn">Continuar</button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
